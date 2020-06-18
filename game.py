@@ -7,7 +7,8 @@ https://edoardoottavianelli.it
 
 #=============IMPORT=============
 import pygame
-
+import pandas as pd
+from sklearn.neighbors import KNeighborsRegressor
 
 #=============PREPARATION============
 
@@ -31,7 +32,10 @@ WHITE = pygame.Color("white")
 BLACK = pygame.Color("black")
 GREEN = pygame.Color("green")
 BLUE = pygame.Color("blue")
-VELOCITY = 2
+RED = pygame.Color("red")
+bgColor = BLACK
+ball_color = RED
+VELOCITY = 5
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -53,18 +57,18 @@ class Ball:
         newx = self.x + self.vx
         newy = self.y + self.vy
         
-        if paddle_y - paddle_HEIGHT//2 < newy and newy < paddle_y + paddle_HEIGHT//2 and newx >= WIDTH - paddle_WIDTH - self.RADIUS:
+        if paddle_y - paddle_HEIGHT//2 <= newy + self.RADIUS and newy - self.RADIUS <= paddle_y + paddle_HEIGHT//2 \
+            and newx + self.RADIUS >= WIDTH - paddle_WIDTH:
             self.vx = - self.vx
         
         if newx < BORDER + self.RADIUS:
             self.vx = - self.vx
         elif newy < BORDER + self.RADIUS or newy > HEIGHT - BORDER - self.RADIUS:
             self.vy = - self.vy
-        else:
-            self.show(BLACK)
-            self.x += self.vx
-            self.y += self.vy
-            self.show(GREEN)
+        self.show(bgColor)
+        self.x += self.vx
+        self.y += self.vy
+        self.show(ball_color)
         
 #-------Paddle-------
 class Paddle:
@@ -75,12 +79,12 @@ class Paddle:
         self.y = y
         
     def show(self, colour):
-        pygame.draw.rect(screen, colour, pygame.Rect((WIDTH - self.WIDTH, self.y - self.HEIGHT//2),(self.WIDTH,self.HEIGHT)))
+        pygame.draw.rect(screen, colour, pygame.Rect(WIDTH - self.WIDTH, self.y - self.HEIGHT//2,self.WIDTH,self.HEIGHT))
         
-    def update(self):
-        mouse = pygame.mouse.get_pos()[1]
+    def update(self,mouse):
+        #mouse = pygame.mouse.get_pos()[1]
         if not(mouse - self.HEIGHT//2 <= BORDER or mouse + self.HEIGHT//2 >= HEIGHT - BORDER):
-            self.show(BLACK)
+            self.show(bgColor)
             self.y = mouse
             self.show(BLUE)
         elif mouse + self.HEIGHT//2 <= BORDER:
@@ -101,20 +105,41 @@ pygame.draw.rect(screen, WHITE ,pygame.Rect(0,0,BORDER,HEIGHT))
 #bottom border
 pygame.draw.rect(screen, WHITE ,pygame.Rect(0,HEIGHT - BORDER,WIDTH,BORDER))
 
-ball.show(GREEN)
+ball.show(ball_color)
 
 paddle.show(BLUE)
+
+sample = open("game.csv","a")
+#print("x,y,vx,vx,Paddle.y", file=sample)
+
+pong = pd.read_csv("game.csv")
+pong = pong.drop_duplicates()
+
+x = pong.drop(columns="Paddle.y")
+y = pong["Paddle.y"]
+
+clf = KNeighborsRegressor(n_neighbors=3)
+
+clf.fit(x,y)
+
+df = pd.DataFrame(columns=['x','y','vx','vy'])
 
 #=============GAME============
 while True:
     e = pygame.event.poll()
     if e.type == pygame.QUIT: break
+
+    toPredict = df.append({'x':ball.x, 'y':ball.y, 'vx': ball.vx, 'vy':ball.vy}, ignore_index=True)
+    shouldMove = clf.predict(toPredict)
     
     ball.update(paddle.y, paddle.WIDTH, paddle.HEIGHT)
     
-    paddle.update()
+    paddle.update(int(shouldMove))
     
     #refresh
     pygame.display.flip()
+    
+    #collecting data
+    print("{},{},{},{},{}".format(ball.x,ball.y,ball.vx,ball.vy,paddle.y), file=sample)
 
 pygame.quit()
