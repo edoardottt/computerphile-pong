@@ -12,18 +12,12 @@ from sklearn.neighbors import KNeighborsRegressor
 
 #=============PREPARATION============
 
-squashpong = '''
-                           _                             
- ___  __ _ _   _  __ _ ___| |__  _ __   ___  _ __   __ _ 
-/ __|/ _` | | | |/ _` / __| '_ \| '_ \ / _ \| '_ \ / _` |
-\__ \ (_| | |_| | (_| \__ \ | | | |_) | (_) | | | | (_| |
-|___/\__, |\__,_|\__,_|___/_| |_| .__/ \___/|_| |_|\__, |
-        |_|                     |_|                |___/ 
+banner = '''
 '''
 pygame.init()
-print("https://github.com/edoardottt/squashpong")
+print("https://github.com/edoardottt/computerphile-pong")
 print("https://edoardoottavianelli.it")
-print(squashpong)
+print(banner)
 
 WIDTH = 1200
 HEIGHT = 600
@@ -36,6 +30,7 @@ RED = pygame.Color("red")
 bgColor = BLACK
 ball_color = RED
 VELOCITY = 5
+FRAMERATE = 60
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -58,13 +53,12 @@ class Ball:
         newy = self.y + self.vy
         
         if paddle_y - paddle_HEIGHT//2 <= newy + self.RADIUS and newy - self.RADIUS <= paddle_y + paddle_HEIGHT//2 \
-            and newx + self.RADIUS >= WIDTH - paddle_WIDTH:
+            and (newx + self.RADIUS >= WIDTH - paddle_WIDTH or newx - self.RADIUS <= Paddle.WIDTH):
             self.vx = - self.vx
-        
-        if newx < BORDER + self.RADIUS:
-            self.vx = - self.vx
-        elif newy < BORDER + self.RADIUS or newy > HEIGHT - BORDER - self.RADIUS:
+            
+        if newy < BORDER + self.RADIUS or newy > HEIGHT - BORDER - self.RADIUS:
             self.vy = - self.vy
+            
         self.show(bgColor)
         self.x += self.vx
         self.y += self.vy
@@ -78,38 +72,38 @@ class Paddle:
     def __init__(self,y):
         self.y = y
         
-    def show(self, colour):
-        pygame.draw.rect(screen, colour, pygame.Rect(WIDTH - self.WIDTH, self.y - self.HEIGHT//2,self.WIDTH,self.HEIGHT))
+    def show(self, colour,x):
+        pygame.draw.rect(screen, colour, pygame.Rect(x, self.y - self.HEIGHT//2,self.WIDTH,self.HEIGHT))
         
-    def update(self,mouse):
-        #mouse = pygame.mouse.get_pos()[1]
+    def update(self,mouse,x):
         if not(mouse - self.HEIGHT//2 <= BORDER or mouse + self.HEIGHT//2 >= HEIGHT - BORDER):
-            self.show(bgColor)
+            self.show(bgColor,x)
             self.y = mouse
-            self.show(BLUE)
+            self.show(BLUE,x)
         elif mouse + self.HEIGHT//2 <= BORDER:
             self.y = self.HEIGHT//2 + BORDER
         else:
             self.y = HEIGHT -self.HEIGHT//2 - BORDER
 
 paddle = Paddle(HEIGHT//2)
+
+user_paddle = Paddle(HEIGHT//2)
         
 ball = Ball(WIDTH - Ball.RADIUS - paddle.WIDTH, HEIGHT//2, -VELOCITY, -VELOCITY)
 
 #top border
 pygame.draw.rect(screen, WHITE ,pygame.Rect((0,0),(WIDTH,BORDER)))
 
-#left border
-pygame.draw.rect(screen, WHITE ,pygame.Rect(0,0,BORDER,HEIGHT))
-
 #bottom border
 pygame.draw.rect(screen, WHITE ,pygame.Rect(0,HEIGHT - BORDER,WIDTH,BORDER))
 
 ball.show(ball_color)
 
-paddle.show(BLUE)
+paddle.show(BLUE,WIDTH - Paddle.WIDTH)
 
-sample = open("game.csv","a")
+user_paddle.show(BLUE, WIDTH - Paddle.WIDTH)
+
+#sample = open("game.csv","a")
 #print("x,y,vx,vx,Paddle.y", file=sample)
 
 pong = pd.read_csv("game.csv")
@@ -124,6 +118,8 @@ clf.fit(x,y)
 
 df = pd.DataFrame(columns=['x','y','vx','vy'])
 
+clock = pygame.time.Clock()
+
 #=============GAME============
 while True:
     e = pygame.event.poll()
@@ -132,14 +128,20 @@ while True:
     toPredict = df.append({'x':ball.x, 'y':ball.y, 'vx': ball.vx, 'vy':ball.vy}, ignore_index=True)
     shouldMove = clf.predict(toPredict)
     
+    paddle.update(int(shouldMove),WIDTH - Paddle.WIDTH)
+    
     ball.update(paddle.y, paddle.WIDTH, paddle.HEIGHT)
     
-    paddle.update(int(shouldMove))
+    user_paddle.update(pygame.mouse.get_pos()[1],0)
+    
+    ball.update(user_paddle.y, user_paddle.WIDTH, user_paddle.HEIGHT)
+    
+    clock.tick(FRAMERATE)
     
     #refresh
     pygame.display.flip()
     
     #collecting data
-    print("{},{},{},{},{}".format(ball.x,ball.y,ball.vx,ball.vy,paddle.y), file=sample)
+    #print("{},{},{},{},{}".format(ball.x,ball.y,ball.vx,ball.vy,paddle.y), file=sample)
 
 pygame.quit()
