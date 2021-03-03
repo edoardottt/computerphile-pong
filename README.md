@@ -17,8 +17,4 @@ Inspired by [Computerphile](https://www.youtube.com/watch?v=JRLdbt7vK-E)
     - pandas
     - scikitlearn
     
-- How to use:
-    
-    - WINDOWS: `python game.py`
-    - LINUX: `python3 game.py`
-    - OSX: `python3 game.py`
+- How to use: `python game.py` (remember **python 3.x**)
