@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 https://github.com/edoardottt
-https://edoardoottavianelli.it
+https://www.edoardoottavianelli.it
 """
 
 #=============IMPORT=============
