@@ -17,4 +17,4 @@ Inspired by [Computerphile](https://www.youtube.com/watch?v=JRLdbt7vK-E)
     - pandas
     - scikitlearn
     
-- How to use: `python game.py` (remember **python 3.x**)
+- How to play: `python game.py` (remember **python 3.x**)
