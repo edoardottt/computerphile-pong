@@ -18,3 +18,7 @@ Inspired by [Computerphile](https://www.youtube.com/watch?v=JRLdbt7vK-E)
     - scikitlearn
     
 - How to play: `python game.py` (remember **python 3.x**)
+
+---------
+
+[edoardoottavianelli.it](https://www.edoardoottavianelli.it/) to contact me.
