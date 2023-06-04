@@ -8,7 +8,7 @@
 
 ```
 
-Inspired by [Computerphile - Pong, Python & Pygame](https://www.youtube.com/watch?v=JRLdbt7vK-E)
+Inspired by [Computerphile - Pong, Python & Pygame (Youtube video)](https://www.youtube.com/watch?v=JRLdbt7vK-E)
 
 - Requirements:
 
