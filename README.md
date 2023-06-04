@@ -17,7 +17,10 @@ Inspired by [Computerphile - Pong, Python & Pygame](https://www.youtube.com/watc
     - pandas
     - scikitlearn
     
-- How to play: `python game.py` (remember **python 3.x**)
+How to play (remember python 3.x): 
+```console
+python game.py
+```
 
 ---------
 
